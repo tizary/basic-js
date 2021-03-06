@@ -3,33 +3,34 @@ const CustomError = require("../extensions/custom-error");
 module.exports = function transform(arr) {
   if (!Array.isArray(arr)) {
     throw new RangeError()
-  } else if (arr[0] === '--double-prev' ||
-  arr[0] === '--double-next' ||
-  arr[0] === '--discard-prev' ||
-  arr[0] === '--discard-next' &&
-  arr.length === 1) {
-    return []
-  }
-   else {
-    let trans = []
+  } else {
+    let trans = [];
     for (let i=0; i<arr.length; i++){
-       if (arr[i] === '--discard-next' ) {
-i = i + 2
-} else if (arr[i] === '--discard-prev' ) {
-trans = trans.filter(item => item !== trans[i-1])
-  i = i+1
-} else if (arr[i] === '--double-next') {
-trans = trans.concat(arr[i+1])
-i = i+1
-} else if (arr[i] === '--double-prev' ) {
-  trans = trans.concat(arr[i-1])
-  i = i+1
-}
-trans.push(arr[i])
-
+      trans.push(arr[i]);
+      switch(arr[i]) {
+        case '--discard-next':
+          i = i+1;
+          break;
+        case '--discard-prev':
+          trans.pop();
+          trans.pop();
+          break;
+        case '--double-next':
+          trans.push(arr[i+1]);
+          break;
+        case '--double-prev':
+          if (arr[i-2] !== '--discard-next') {
+            trans.push(arr[i - 1]);
+          }
+          break;
+      }
     }
-  //  console.log(arr)
-    return trans
-
+    let result =[];
+    trans.forEach(el => {
+      if (el !== '--discard-next' && el !== '--discard-prev' && el !== '--double-next' && el !== '--double-prev' && el !== undefined && el !== [undefined]) {
+        result.push(el);
+      }
+    });
+    return result;
   }
 };
